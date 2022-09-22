@@ -17,6 +17,7 @@
 	"learning_rate_decay_start": 10000,
 	"multi_language": true,
 	"multi_speaker": true,
+	"normalize_spectrogram": false,
 	"perfect_sampling": true,
 	"predict_linear": false,
 	"reversal_classifier": true,

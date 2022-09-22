@@ -209,9 +209,10 @@ if __name__ == '__main__':
         os.makedirs(checkpoint_dir)
 
     # load checkpoint (dict) with saved hyper-parameters (let some of them be overwritten because of fine-tuning)
+    map_location = 'cuda' if torch.cuda.is_available() else 'cpu'
     if args.checkpoint:
         checkpoint = os.path.join(checkpoint_dir, args.checkpoint)
-        checkpoint_state = torch.load(checkpoint, map_location='cpu')
+        checkpoint_state = torch.load(checkpoint, map_location=map_location)
         hp.load_state_dict(checkpoint_state['parameters'])      
 
     # load hyperparameters
@@ -280,10 +281,10 @@ if __name__ == '__main__':
         model_dict.update(pretrained_dict) 
         model.load_state_dict(model_dict)
         # other states from checkpoint -- optimizer, scheduler, loss, epoch
-        initial_epoch = checkpoint_state['epoch'] + 1
-        optimizer.load_state_dict(checkpoint_state['optimizer'])
-        scheduler.load_state_dict(checkpoint_state['scheduler'])
-        criterion.load_state_dict(checkpoint_state['criterion'])
+        if (checkpoint_state['epoch']): initial_epoch = checkpoint_state['epoch'] + 1
+        if (checkpoint_state['optimizer']): optimizer.load_state_dict(checkpoint_state['optimizer'])
+        if (checkpoint_state['scheduler']): scheduler.load_state_dict(checkpoint_state['scheduler'])
+        if (checkpoint_state['criterion']): criterion.load_state_dict(checkpoint_state['criterion'])
 
     # initialize logger
     log_dir = os.path.join(args.base_directory, "logs", f'{hp.version}-{datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")}')

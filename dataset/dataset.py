@@ -128,6 +128,11 @@ class TextToSpeechDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         item = self.items[index]
         audio_path = item['audio']
+        # compute per-channel constants for spectrogram normalization
+        # hp.mel_normalize_mean, hp.mel_normalize_variance = self.get_normalization_constants(True)
+        # if hp.predict_linear:
+        #     hp.lin_normalize_mean, hp.lin_normalize_variance = self.get_normalization_constants(False)
+
         mel_spec = self.load_spectrogram(audio_path, item['spectrogram'], hp.normalize_spectrogram, True)
         lin_spec = self.load_spectrogram(audio_path, item['linear_spectrogram'], hp.normalize_spectrogram, False) if hp.predict_linear else None
         return (item['speaker'], item['language'], item['phonemes'] if hp.use_phonemes else item['text'], mel_spec, lin_spec)
