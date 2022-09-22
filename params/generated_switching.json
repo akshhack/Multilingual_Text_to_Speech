@@ -4,7 +4,7 @@
 	"case_sensitive": false,
 	"characters": " abcdefghijklmnopqrstuvwxyzçèéßäöōǎǐíǒàáǔüèéìūòóùúāēěīâêôûñőűабвгдежзийклмнопрстуфхцчшщъыьэюяё",	
 	"checkpoint_each_epochs": 5,
-	"dataset": "css_comvoi",
+	"dataset": "my_common_voice",
 	"encoder_dimension": 256,
 	"encoder_type": "generated",
 	"epochs": 300,
