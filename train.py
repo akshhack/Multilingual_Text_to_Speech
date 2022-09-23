@@ -166,8 +166,9 @@ def evaluate(epoch, data, model, criterion):
 
     # log evaluation
     Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
-    
-    return sum(eval_losses.values())
+    loss = sum(eval_losses.values())
+    print(f'{epoch + 1} loss: {loss}')
+    return loss
 
 
 class DataParallelPassthrough(torch.nn.DataParallel):

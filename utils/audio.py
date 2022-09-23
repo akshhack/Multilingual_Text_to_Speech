@@ -88,10 +88,13 @@ def linear_to_mel(S):
 def inverse_spectrogram(s, mel=False):
     """Convert log-magnitude spectrogram to waveform."""
     S = db_to_amplitude(s)
+    print(f'[inverse_spectrogram] Amplitude signal: {S}')
     wf = ms_to_frames(hp.stft_window_ms)
     hf = ms_to_frames(hp.stft_shift_ms)
     if mel: S = librosa.feature.inverse.mel_to_stft(S, power=1, sr=hp.sample_rate, n_fft=hp.num_fft)
-    y = librosa.griffinlim(S ** hp.griffin_lim_power, n_iter=hp.griffin_lim_iters, hop_length=hf, win_length=wf)
+    # This should be uncommented if we want to use Griffin-Lim
+    # y = librosa.griffinlim(S ** hp.griffin_lim_power, n_iter=hp.griffin_lim_iters, hop_length=hf, win_length=wf)
+    y = librosa.istft(S)
     if hp.use_preemphasis: y = deemphasis(y)
     y /= max(y)
     return y
