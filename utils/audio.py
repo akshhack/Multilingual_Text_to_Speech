@@ -87,6 +87,7 @@ def linear_to_mel(S):
 
 def inverse_spectrogram(s, mel=False):
     """Convert log-magnitude spectrogram to waveform."""
+    print("dB:\n", s)
     S = db_to_amplitude(s)
     print(f'[inverse_spectrogram] Amplitude signal: {S}')
     wf = ms_to_frames(hp.stft_window_ms)
