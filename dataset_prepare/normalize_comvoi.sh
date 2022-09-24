@@ -41,7 +41,7 @@ for (( idx=0 ; idx<${#languages[@]} ; idx+=2 )) ; do
 
     echo Converting "$LANG" to wavs
     cd clips
-    find . -type f -name "*.mp3" | while read i; do ffmpeg -loglevel panic -y -i $i $(basename $i).wav < /dev/null &; done
+    find . -type f -name "*.mp3" | while read i; do ffmpeg -loglevel panic -y -i $i $(basename $i).wav < /dev/null & done
     find . -name "*.mp3" -delete
     wait
     cd ../
