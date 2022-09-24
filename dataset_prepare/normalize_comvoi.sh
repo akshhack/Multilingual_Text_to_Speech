@@ -4,9 +4,6 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# pre-req
-sudo apt install pigz
-
 mkdir -p "$1" && cd "$1"
 
 languages=(
@@ -32,7 +29,7 @@ for (( idx=0 ; idx<${#languages[@]} ; idx+=2 )) ; do
 
     echo Extracting "$ZIPPED"
 
-    pigz -dc "$ZIPPED" | tar xzf -
+    tar xzf "$ZIPPED"
     ls *.tsv | grep -v ^validated.tsv | xargs rm
     awk -F"\t" '{if ($5 == 0) print $0}' validated.tsv > tmp && mv tmp validated.tsv
     
