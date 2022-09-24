@@ -4,6 +4,9 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+# pre-req
+sudo apt install pigz
+
 mkdir -p "$1" && cd "$1"
 
 languages=(
@@ -29,7 +32,7 @@ for (( idx=0 ; idx<${#languages[@]} ; idx+=2 )) ; do
 
     echo Extracting "$ZIPPED"
 
-    tar xzf "$ZIPPED"
+    pigz -dc "$ZIPPED" | pv | tar xf -
     ls *.tsv | grep -v ^validated.tsv | xargs rm
     awk -F"\t" '{if ($5 == 0) print $0}' validated.tsv > tmp && mv tmp validated.tsv
     
@@ -42,8 +45,8 @@ for (( idx=0 ; idx<${#languages[@]} ; idx+=2 )) ; do
     echo Converting "$LANG" to wavs
     cd clips
     find . -type f -name "*.mp3" | while read i; do ffmpeg -loglevel panic -y -i $i $(basename $i).wav < /dev/null & done
-    find . -name "*.mp3" -delete
     wait
+    find . -name "*.mp3" -delete
     cd ../
 
     cd ../
