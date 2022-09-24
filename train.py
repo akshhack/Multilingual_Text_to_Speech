@@ -165,7 +165,8 @@ def evaluate(epoch, data, model, criterion):
         eval_losses[k] /= len(data)
 
     # log evaluation
-    if (epoch % hp.checkpoint_each_epochs == 0):
+    if (epoch !=0) and (epoch % hp.checkpoint_each_epochs == 0):
+        print(" &&&&& LOGGING &&&&&&")    
         Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
     loss = sum(eval_losses.values())
     print(f'{epoch + 1} loss: {loss}')
@@ -215,6 +216,7 @@ if __name__ == '__main__':
     if args.checkpoint:
         checkpoint = os.path.join(checkpoint_dir, args.checkpoint)
         checkpoint_state = torch.load(checkpoint, map_location=map_location)
+        print(checkpoint_state)
         hp.load_state_dict(checkpoint_state['parameters'])      
 
     # load hyperparameters
