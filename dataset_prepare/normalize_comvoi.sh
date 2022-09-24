@@ -32,7 +32,7 @@ for (( idx=0 ; idx<${#languages[@]} ; idx+=2 )) ; do
 
     echo Extracting "$ZIPPED"
 
-    pigz -dc "$ZIPPED" | pv | tar xf -
+    pigz -dc "$ZIPPED" | tar xzf -
     ls *.tsv | grep -v ^validated.tsv | xargs rm
     awk -F"\t" '{if ($5 == 0) print $0}' validated.tsv > tmp && mv tmp validated.tsv
     
