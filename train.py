@@ -305,7 +305,7 @@ if __name__ == '__main__':
         train(args.logging_start, epoch, train_data, model, criterion, optimizer)  
         if hp.learning_rate_decay_start - hp.learning_rate_decay_each < epoch * len(train_data):
             scheduler.step()
-        eval_loss = evaluate(epoch, eval_data, model, criterion)
+        eval_loss = evaluate(args.logging_start, epoch, eval_data, model, criterion)
         if (eval_loss[0] < best_eval):
             best_eval = eval_loss[0]
             best_epoch = epoch
