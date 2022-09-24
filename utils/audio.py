@@ -5,6 +5,7 @@ import librosa
 import librosa.feature
 import librosa.effects
 import soundfile as sf
+from copy import deepcopy
 
 from params.params import Params as hp
 
@@ -87,17 +88,51 @@ def linear_to_mel(S):
 
 def inverse_spectrogram(s, mel=False):
     """Convert log-magnitude spectrogram to waveform."""
-    print("dB:\n", s)
-    S = db_to_amplitude(s)
-    print(f'[inverse_spectrogram] Amplitude signal: {S}')
+#    print("dB:\n", s)
+#    print(len(s))
+#    print(s.shape)
+#    print(s[0].shape)
+#    print("**** BEFORE ****")
+#    for vect in s:
+#      print("(", len(vect), ") ", end="")
+#    print()
+#    print("Min db: ", min([min(each_vector) for each_vector in s]))
+#    print("Max db: ", max([max(each_vector) for each_vector in s]))
+
+#   Limit the values in dB in s
+    lower_limit = np.float64(-100.0)
+    upper_limit = np.float64(0.0)
+
+    new_s = np.empty(shape=[len(s), len(s[0])])
+    for i in range(len(s)):
+        for j in range(len(s[i])):
+            new_s[i][j] = max(min(s[i][j], upper_limit), lower_limit)
+
+#    print("**** AFTER LIMIT ****")
+#    print()
+#    print("Min db: ", min([min(each_vector) for each_vector in new_s]))
+#    print("Max db: ", max([max(each_vector) for each_vector in new_s]))
+#    print("*********************")
+#    print(len(new_s))
+#    print("NEW_S:\n", new_s)
+#    print("&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+
+
+    S = db_to_amplitude(new_s)
+#    print(f'[inverse_spectrogram] Amplitude signal: {S}')
     wf = ms_to_frames(hp.stft_window_ms)
     hf = ms_to_frames(hp.stft_shift_ms)
+#    print("MEL:", mel)
     if mel: S = librosa.feature.inverse.mel_to_stft(S, power=1, sr=hp.sample_rate, n_fft=hp.num_fft)
     # This should be uncommented if we want to use Griffin-Lim
-    # y = librosa.griffinlim(S ** hp.griffin_lim_power, n_iter=hp.griffin_lim_iters, hop_length=hf, win_length=wf)
-    y = librosa.istft(S)
+#    print("*** STARTED GRIFFIN-LIM ***")
+    y = librosa.griffinlim(S ** hp.griffin_lim_power, n_iter=hp.griffin_lim_iters, hop_length=hf, win_length=wf)
+#    print("*** STARTED ISTFT ***")
+#    y = librosa.istft(S)
+#    print("*** STARTED PREEMPHASIS ***")
     if hp.use_preemphasis: y = deemphasis(y)
     y /= max(y)
+#    print("*** FINISHED PREEMPHASIS ***")
     return y
 
 

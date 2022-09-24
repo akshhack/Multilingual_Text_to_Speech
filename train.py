@@ -165,7 +165,8 @@ def evaluate(epoch, data, model, criterion):
         eval_losses[k] /= len(data)
 
     # log evaluation
-    Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
+    if (epoch % hp.checkpoint_each_epochs == 0):
+        Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
     loss = sum(eval_losses.values())
     print(f'{epoch + 1} loss: {loss}')
     return loss
@@ -293,6 +294,7 @@ if __name__ == '__main__':
 
     # training loop
     best_eval = float('inf')
+    print("TOTAL NUMBER OF EPOCHS: ", hp.epochs)
     for epoch in range(initial_epoch, hp.epochs):
         train(args.logging_start, epoch, train_data, model, criterion, optimizer)  
         if hp.learning_rate_decay_start - hp.learning_rate_decay_each < epoch * len(train_data):
@@ -310,3 +312,7 @@ if __name__ == '__main__':
                 'criterion': criterion.state_dict()
             }
             torch.save(state_dict, checkpoint_file)
+        print("*******************************************")
+        print("EPOCH: ", epoch)
+        print("Eval_Loss: ", eval_loss)
+        print("*******************************************")
