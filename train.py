@@ -95,10 +95,11 @@ def train(logging_start_epoch, epoch, data, model, criterion, optimizer):
         done += 1 
     
 
-def evaluate(epoch, data, model, criterion):  
+def evaluate(logging_start_epoch, epoch, data, model, criterion):  
     """Main evaluation procedure.
     
     Arguments:
+        loggin_start_epoch -- when to start logging
         epoch -- current epoch 
         data -- DataLoader which can provide validation batches
         model -- model to be evaluated
@@ -165,11 +166,13 @@ def evaluate(epoch, data, model, criterion):
         eval_losses[k] /= len(data)
 
     # log evaluation
-    if (epoch !=0) and (epoch % hp.checkpoint_each_epochs == 0):
+    if epoch >= logging_start_epoch:
+        if (epoch !=0) and (epoch % hp.checkpoint_each_epochs == 0):
+
         print(" &&&&& LOGGING &&&&&&")    
         Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
     loss = sum(eval_losses.values())
-    print(f'{epoch + 1} loss: {loss}')
+    print(f'{epoch} loss: {loss}')
     return loss
 
 
@@ -194,7 +197,7 @@ if __name__ == '__main__':
     parser.add_argument("--data_root", type=str, default="data", help="Base directory of datasets.")
     parser.add_argument("--flush_seconds", type=int, default=60, help="How often to flush pending summaries to tensorboard.")
     parser.add_argument('--hyper_parameters', type=str, default=None, help="Name of the hyperparameters file.")
-    parser.add_argument('--logging_start', type=int, default=1, help="First epoch to be logged")
+    parser.add_argument('--logging_start', type=int, default=10, help="First epoch to be logged")
     parser.add_argument('--max_gpus', type=int, default=2, help="Maximal number of GPUs of the local machine to use.")
     parser.add_argument('--loader_workers', type=int, default=2, help="Number of subprocesses to use for data loading.")
     args = parser.parse_args()
@@ -296,14 +299,30 @@ if __name__ == '__main__':
 
     # training loop
     best_eval = float('inf')
+    best_epoch = -1
+ 
     print("TOTAL NUMBER OF EPOCHS: ", hp.epochs)
     for epoch in range(initial_epoch, hp.epochs):
         train(args.logging_start, epoch, train_data, model, criterion, optimizer)  
         if hp.learning_rate_decay_start - hp.learning_rate_decay_each < epoch * len(train_data):
             scheduler.step()
-        eval_loss = evaluate(epoch, eval_data, model, criterion)   
-        if (epoch + 1) % hp.checkpoint_each_epochs == 0:
-            # save checkpoint together with hyper-parameters, optimizer and scheduler states
+        eval_loss = evaluate(epoch, eval_data, model, criterion)
+        if (eval_loss[0] < best_eval):
+            best_eval = eval_loss[0]
+            best_epoch = epoch
+            best_model_file = f'{checkpoint_dir}/best_model_{hp.version}_loss-{epoch}-{eval_loss:2.3f}'
+            state_dict = {
+                'epoch': epoch,
+                'model': model.state_dict(),
+                'optimizer': optimizer.state_dict(),
+                'scheduler': scheduler.state_dict(),
+                'parameters': hp.state_dict(),
+                'criterion': criterion.state_dict()
+            }
+            torch.save(state_dict, best_model_file)
+
+        if (epoch> 0) and (epoch % hp.checkpoint_each_epochs == 0):
+            # save regular checkpoint together with hyper-parameters, optimizer and scheduler states
             checkpoint_file = f'{checkpoint_dir}/{hp.version}_loss-{epoch}-{eval_loss:2.3f}'
             state_dict = {
                 'epoch': epoch,
@@ -317,4 +336,5 @@ if __name__ == '__main__':
         print("*******************************************")
         print("EPOCH: ", epoch)
         print("Eval_Loss: ", eval_loss)
+        print("BEST so far: ", best_eval, " from epoch: ", best_epoch)
         print("*******************************************")
