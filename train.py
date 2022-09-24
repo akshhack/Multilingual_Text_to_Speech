@@ -168,9 +168,8 @@ def evaluate(logging_start_epoch, epoch, data, model, criterion):
     # log evaluation
     if epoch >= logging_start_epoch:
         if (epoch !=0) and (epoch % hp.checkpoint_each_epochs == 0):
-
-        print(" &&&&& LOGGING &&&&&&")    
-        Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
+            print(" &&&&& LOGGING &&&&&&")    
+            Logger.evaluation(epoch+1, eval_losses, mcd, src_len, trg_len, src, post_trg, post_pred, post_pred_0, stop_pred_probs, stop_trg, alignment_0, cla)
     loss = sum(eval_losses.values())
     print(f'{epoch} loss: {loss}')
     return loss
