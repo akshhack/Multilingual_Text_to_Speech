@@ -75,26 +75,28 @@ if __name__ == '__main__':
     
     ph = ""  # No use of phonemes so far
     idx = 0 # unique index of a spectrogram
-    for lang in range(len(languages)):
-        # Load metafiles, separately for each language. An item is a list like: [text, audiopath, speaker_id, language ]
-        metadata_items = loaders.get_loader_by_name(args.loader_name)(args.dataset_directory, meta_files=[metadata_paths[lang].as_posix()])
 
-        # Gather each speaker of that language
-        speaker_wavs_count = [[speaker, len(list(all_speaker_wavs))] for speaker, all_speaker_wavs in           # Take just the number of audio_paths of the same speaker
-                            groupby(metadata_items, lambda item: item[2])]                                      # group by the speaker (metadata_items[2] is the speaker)
+    with open(train_filepath, 'w', encoding='utf-8') as f_train:
+        with open(val_filepath, 'w', encoding='utf-8') as f_val:
 
-        speaker_processed_so_far = [[speaker, 0] for speaker, count in speaker_wavs_count]
-        
-        speaker_val_count = [[speaker, max(1, round(count*float(args.percent_val_per_speaker)/100))] for speaker, count in speaker_wavs_count]
-        speaker_selected_val_so_far = [[speaker, 0] for speaker, count in speaker_wavs_count]
-        
-#        print("\n\nSpeaker_wavs_count:\n", speaker_wavs_count, "\n")
-#        print("\n\nSpeaker_val_count:\n", speaker_val_count, "\n")
-#        print("\n\nSpeaker_selected_val_so_far:\n", speaker_selected_val_so_far, "\n")
+            for lang in range(len(languages)):
+                # Load metafiles, separately for each language. An item is a list like: [text, audiopath, speaker_id, language ]
+                metadata_items = loaders.get_loader_by_name(args.loader_name)(args.dataset_directory, meta_files=[metadata_paths[lang].as_posix()])
 
-        len_m = len(metadata_items)
-        with open(train_filepath, 'w', encoding='utf-8') as f_train:
-            with open(val_filepath, 'w', encoding='utf-8') as f_val:
+                # Gather each speaker of that language
+                speaker_wavs_count = [[speaker, len(list(all_speaker_wavs))] for speaker, all_speaker_wavs in           # Take just the number of audio_paths of the same speaker
+                                    groupby(metadata_items, lambda item: item[2])]                                      # group by the speaker (metadata_items[2] is the speaker)
+
+                speaker_processed_so_far = [[speaker, 0] for speaker, count in speaker_wavs_count]
+                
+                speaker_val_count = [[speaker, max(1, round(count*float(args.percent_val_per_speaker)/100))] for speaker, count in speaker_wavs_count]
+                speaker_selected_val_so_far = [[speaker, 0] for speaker, count in speaker_wavs_count]
+                
+        #        print("\n\nSpeaker_wavs_count:\n", speaker_wavs_count, "\n")
+        #        print("\n\nSpeaker_val_count:\n", speaker_val_count, "\n")
+        #        print("\n\nSpeaker_selected_val_so_far:\n", speaker_selected_val_so_far, "\n")
+
+                len_m = len(metadata_items)
                 for i in range(len_m):
                     raw_text, a_path, speaker_id, language = metadata_items[i]
                     idx_str = str(idx).zfill(6)
@@ -149,5 +151,5 @@ if __name__ == '__main__':
                     progress((i + 1) / len_m, prefix='Building metafile for: ' + language + " ")
                     idx += 1
 
-                f_val.close()
-            f_train.close()
+        f_val.close()
+    f_train.close()
