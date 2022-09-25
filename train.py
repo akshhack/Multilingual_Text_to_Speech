@@ -303,11 +303,13 @@ if __name__ == '__main__':
     print("TOTAL NUMBER OF EPOCHS: ", hp.epochs)
     for epoch in range(initial_epoch, hp.epochs):
         train(args.logging_start, epoch, train_data, model, criterion, optimizer)  
+        print("*** STARTED EPOCH: ", epoch, "***")
+
         if hp.learning_rate_decay_start - hp.learning_rate_decay_each < epoch * len(train_data):
             scheduler.step()
         eval_loss = evaluate(args.logging_start, epoch, eval_data, model, criterion)
-        if (eval_loss[0] < best_eval):
-            best_eval = eval_loss[0]
+        if (eval_loss.item() < best_eval):
+            best_eval = eval_loss.item()
             best_epoch = epoch
             best_model_file = f'{checkpoint_dir}/best_model_{hp.version}_loss-{epoch}-{eval_loss:2.3f}'
             state_dict = {
@@ -334,6 +336,6 @@ if __name__ == '__main__':
             torch.save(state_dict, checkpoint_file)
         print("*******************************************")
         print("EPOCH: ", epoch)
-        print("Eval_Loss: ", eval_loss)
+        print("Eval_Loss: ", eval_loss.item())
         print("BEST so far: ", best_eval, " from epoch: ", best_epoch)
         print("*******************************************")
