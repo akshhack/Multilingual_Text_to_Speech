@@ -252,17 +252,13 @@ if __name__ == '__main__':
     # acquire dataset-dependent constants, these should probably be the same while going from checkpoint
     if not args.checkpoint:
         # load normalization constants
-        if os.path.exists(os.path.join(args.base_directory, 'normalization_constants.txt')):
-            with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'rt', encoding='utf-8') as f_norm:
-                line = f_norm.readline()
-                hp.mel_normalize_mean = float(line)
-                line = f_norm.readline()
-                hp.mel_normalize_variance = float(line)
+        if os.path.exists(os.path.join(args.data_root, hp.dataset, 'normalization_constants.npy')):
+            with open(os.path.join(args.data_root, hp.dataset, 'normalization_constants.npy'), 'rb') as f_norm:
+                hp.mel_normalize_mean = np.load(f_norm)
+                hp.mel_normalize_variance = np.load(f_norm)
                 if hp.predict_linear:
-                    line = f_norm.readline()
-                    hp.lin_normalize_mean = float(line)
-                    line = f_norm.readline()
-                    hp.lin_normalize_variance = float(line)
+                    hp.lin_normalize_mean = np.load(f_norm)
+                    hp.lin_normalize_variance = np.load(f_norm)
                 f_norm.close()
             
         else:  # This was never calculated before
@@ -285,12 +281,12 @@ if __name__ == '__main__':
                 hp.lin_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))
 
             # Save these normalization constants to a file for later reuse
-            with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'wt', encoding='utf-8') as f_norm:
-                print(hp.mel_normalize_mean, file=f_norm)
-                print(hp.mel_normalize_variance, file=f_norm)
+            with open(os.path.join(args.data_root, hp.dataset, 'normalization_constants.npy'), 'wb') as f_norm:
+                np.save(f_norm, hp.mel_normalize_mean)
+                np.save(f_norm, hp.mel_normalize_variance)
                 if hp.predict_linear:
-                    print(hp.lin_normalize_mean, file=f_norm)
-                    print(hp.lin_normalize_variance, file=f_norm)
+                    np.save(f_norm, hp.lin_normalize_mean)
+                    np.save(f_norm, hp.lin_normalize_variance)
                 f_norm.close()
 
 
