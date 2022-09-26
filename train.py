@@ -267,20 +267,22 @@ if __name__ == '__main__':
             
         else:  # This was never calculated before
             # compute per-channel constants for spectrogram normalization
+            print("CALCULATE NORMALIZATION CONSTANTS FOR THE TRAINING DATASET")
             train_mel_normalize_mean, train_mel_normalize_variance = dataset.train.get_normalization_constants(True)
-            eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.eval.get_normalization_constants(True)
+            print("CALCULATE NORMALIZATION CONSTANTS FOR THE VALIDATION DATASET")
+            eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.dev.get_normalization_constants(True)
 
             # weighted average
-            hp.mel_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
+            hp.mel_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))
             hp.mel_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
 
 
             if hp.predict_linear:
                 train_mel_normalize_mean, train_mel_normalize_variance = dataset.train.get_normalization_constants(False)   
-                eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.eval.get_normalization_constants(False)   
+                eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.dev.get_normalization_constants(False)   
                 # weighted average
-                hp.lin_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))  
-                hp.lin_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
+                hp.lin_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.dev.items))  
+                hp.lin_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))
 
             # Save these normalization constants to a file for later reuse
             with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'wt', encoding='utf-8') as f_norm:
