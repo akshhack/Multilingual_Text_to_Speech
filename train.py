@@ -5,6 +5,7 @@ import math
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
+from datetime import datetime
 
 from dataset.dataset import TextToSpeechDatasetCollection, TextToSpeechCollate
 from params.params import Params as hp
@@ -301,9 +302,15 @@ if __name__ == '__main__':
     best_epoch = -1
  
     print("TOTAL NUMBER OF EPOCHS: ", hp.epochs)
+    epochs_left = hp.epochs - initial_epoch
+    print("REMAINING NUMBER OF EPOCHS: ", epochs_left)   # If continuing form a checkpoint total and remaining might differ
+
+    avg_time_epochs = 0
     for epoch in range(initial_epoch, hp.epochs):
-        train(args.logging_start, epoch, train_data, model, criterion, optimizer)  
-        print("*** STARTED EPOCH: ", epoch, "***")
+        train(args.logging_start, epoch, train_data, model, criterion, optimizer)
+        started_at = datetime.datetime.now()
+
+        print("*** STARTED EPOCH: ", epoch, "at ", started_at, "***")
 
         if hp.learning_rate_decay_start - hp.learning_rate_decay_each < epoch * len(train_data):
             scheduler.step()
@@ -334,8 +341,22 @@ if __name__ == '__main__':
                 'criterion': criterion.state_dict()
             }
             torch.save(state_dict, checkpoint_file)
+        # Calculate times    
+        ended_at = datetime.datetime.now()
+        time_difference = (ended_at - started_at).total_seconds()
+        avg_time_epochs = (avg_time_epochs*epoch + time_difference)/(epoch+1)   # Calculate running average of epoch times
+        epochs_left = epochs_left - 1
+        estimated_time_left = epochs_left*avg_time_epochs
+        remaining_days    = divmod(estimated_time_left, 86400)            # Get days (without [0]!)
+        remaining_hours   = divmod(remaining_days[1], 3600)               # Use remainder of days to calc hours
+        remaining_minutes = divmod(remaining_hours[1], 60)                # Use remainder of hours to calc minutes
+        remaining_seconds = divmod(remaining_minutes[1], 1)               # Use remainder of minutes to calc seconds
+
         print("*******************************************")
         print("EPOCH: ", epoch)
         print("Eval_Loss: ", eval_loss.item())
         print("BEST so far: ", best_eval, " from epoch: ", best_epoch)
+        print("Duration:", time_difference)
+        print("AVG duration of an epoch:", avg_time_epochs)
+        print("Estimated time left: %d days, %d hours, %d minutes and %d seconds" % (remaining_days[0], remaining_hours[0], remaining_minutes[0], remaining_seconds[0]))
         print("*******************************************")
