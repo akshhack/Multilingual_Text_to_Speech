@@ -182,8 +182,6 @@ class TextToSpeechDataset(torch.utils.data.Dataset):
             std += np.std(spectrogram, axis=1, keepdims=True)
             i = i + 1
             Logger.progress(i/ num_samples, prefix='Normalizing the dataset: ')
-
-            print(f'\r{i}', end='', flush=True)
         mean /= len(self.items)
         std /= len(self.items)
         return mean, std

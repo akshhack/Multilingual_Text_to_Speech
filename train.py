@@ -5,7 +5,6 @@ import math
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from datetime import datetime
 
 from dataset.dataset import TextToSpeechDatasetCollection, TextToSpeechCollate
 from params.params import Params as hp
@@ -252,10 +251,46 @@ if __name__ == '__main__':
 
     # acquire dataset-dependent constants, these should probably be the same while going from checkpoint
     if not args.checkpoint:
-        # compute per-channel constants for spectrogram normalization
-        hp.mel_normalize_mean, hp.mel_normalize_variance = dataset.train.get_normalization_constants(True)
-        if hp.predict_linear:
-            hp.lin_normalize_mean, hp.lin_normalize_variance = dataset.train.get_normalization_constants(False)   
+        # load normalization constants
+        if os.path.exists(os.path.join(args.base_directory, 'normalization_constants.txt')):
+            with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'rt', encoding='utf-8') as f_norm:
+                line = f_norm.readline()
+                hp.mel_normalize_mean = float(line)
+                line = f_norm.readline()
+                hp.mel_normalize_variance = float(line)
+                if hp.predict_linear:
+                    line = f_norm.readline()
+                    hp.lin_normalize_mean = float(line)
+                    line = f_norm.readline()
+                    hp.lin_normalize_variance = float(line)
+                f_norm.close()
+            
+        else:  # This was never calculated before
+            # compute per-channel constants for spectrogram normalization
+            train_mel_normalize_mean, train_mel_normalize_variance = dataset.train.get_normalization_constants(True)
+            eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.eval.get_normalization_constants(True)
+
+            # weighted average
+            hp.mel_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
+            hp.mel_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
+
+
+            if hp.predict_linear:
+                train_mel_normalize_mean, train_mel_normalize_variance = dataset.train.get_normalization_constants(False)   
+                eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.eval.get_normalization_constants(False)   
+                # weighted average
+                hp.lin_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))  
+                hp.lin_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
+
+            # Save these normalization constants to a file for later reuse
+            with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'rt', encoding='utf-8') as f_norm:
+                print(hp.mel_normalize_mean, file=f_norm)
+                print(hp.mel_normalize_variance, file=f_norm)
+                if hp.predict_linear:
+                    print(hp.lin_normalize_mean, file=f_norm)
+                    print(hp.lin_normalize_variance, file=f_norm)
+                f_norm.close()
+
 
     # instantiate model
     if torch.cuda.is_available(): 
