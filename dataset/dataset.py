@@ -81,7 +81,6 @@ class TextToSpeechDataset(torch.utils.data.Dataset):
         self.unique_speakers = known_unique_speakers.copy()
         unique_speakers_set = set(self.unique_speakers)
         self.items = []
-        print("STARTED LOADING DATASET")
         with open(meta_file, 'r', encoding='utf-8') as f:
             for line in f:
                 line_tokens = line[:-1].split('|')
@@ -100,8 +99,6 @@ class TextToSpeechDataset(torch.utils.data.Dataset):
                         unique_speakers_set.add(line_tokens[1])
                         self.unique_speakers.append(line_tokens[1])
                     self.items.append(item)
-                print(f'\r{line_tokens[4][0:-4]} %', end='', flush=True)
-        print("\nSTARTED TO PREPARE THE DATASET")
 
         # clean text with basic stuff -- multiple spaces, case sensitivity and punctuation
         for idx in range(len(self.items)):
@@ -124,7 +121,6 @@ class TextToSpeechDataset(torch.utils.data.Dataset):
             self.items[idx]['text'] = text.to_sequence(self.items[idx]['text'], use_phonemes=False)
             self.items[idx]['speaker'] = self.unique_speakers.index(self.items[idx]['speaker'])
             self.items[idx]['language'] = hp.languages.index(self.items[idx]['language'])
-        print("\nFINISHED LOADING THE DATASET")
 
 
     def __len__(self):
@@ -176,11 +172,18 @@ class TextToSpeechDataset(torch.utils.data.Dataset):
         """Compute per-channel mean and variance of the data contained in this collection."""
         mean = 0.0
         std = 0.0
+        num_samples = len(self.items)
+        print("TOTAL NUMBER OF SAMPLES:", num_samples)
+        i = 0
         for item in self.items:
             path = item['spectrogram'] if is_mel else item['linear_spectrogram']
             spectrogram = self.load_spectrogram(item['audio'], path, False, is_mel)
             mean += np.mean(spectrogram, axis=1, keepdims=True)
             std += np.std(spectrogram, axis=1, keepdims=True)
+            i = i + 1
+            Logger.progress(i/ num_samples, prefix='Normalizing the dataset: ')
+
+            print(f'\r{i}', end='', flush=True)
         mean /= len(self.items)
         std /= len(self.items)
         return mean, std
