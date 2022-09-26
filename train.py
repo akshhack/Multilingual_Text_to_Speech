@@ -283,7 +283,7 @@ if __name__ == '__main__':
                 hp.lin_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
 
             # Save these normalization constants to a file for later reuse
-            with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'rt', encoding='utf-8') as f_norm:
+            with open(os.path.join(args.base_directory, 'normalization_constants.txt'), 'wt', encoding='utf-8') as f_norm:
                 print(hp.mel_normalize_mean, file=f_norm)
                 print(hp.mel_normalize_variance, file=f_norm)
                 if hp.predict_linear:
