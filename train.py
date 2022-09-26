@@ -274,14 +274,14 @@ if __name__ == '__main__':
 
             # weighted average
             hp.mel_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))
-            hp.mel_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.eval.items))
+            hp.mel_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))
 
 
             if hp.predict_linear:
                 train_mel_normalize_mean, train_mel_normalize_variance = dataset.train.get_normalization_constants(False)   
                 eval_mel_normalize_mean, eval_mel_normalize_variance = dataset.dev.get_normalization_constants(False)   
                 # weighted average
-                hp.lin_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.eval.items))/(len(dataset.train.items) + len(dataset.dev.items))  
+                hp.lin_normalize_mean = (train_mel_normalize_mean * len(dataset.train.items) + eval_mel_normalize_mean * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))  
                 hp.lin_normalize_variance = (train_mel_normalize_variance * len(dataset.train.items) + eval_mel_normalize_variance * len(dataset.dev.items))/(len(dataset.train.items) + len(dataset.dev.items))
 
             # Save these normalization constants to a file for later reuse
